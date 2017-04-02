@@ -1,0 +1,5 @@
+@font-face {
+  font-family: Foo;
+  src: url('./assets/bar.eot'), url('./assets/bar.eot#bar') format('embedded-opentype');
+  src: url('./assets/bar.woff') format('woff');
+}

@@ -1,0 +1,7 @@
+@import "./partials/bar";
+@import "./mixins/bar";
+
+.foo {
+  @include bar();
+  background: url(./assets/foo.png);
+}

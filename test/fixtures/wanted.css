@@ -1,0 +1,10 @@
+@font-face {
+    font-family: Foo;
+    src: url("test/fixtures/partials/assets/bar.eot"), url("test/fixtures/partials/assets/bar.eot#bar") format("embedded-opentype");
+    src: url("test/fixtures/partials/assets/bar.woff") format("woff");
+}
+
+.foo {
+    background: url("test/fixtures/mixins/assets/bar.png");
+    background: url("test/fixtures/assets/foo.png");
+}
