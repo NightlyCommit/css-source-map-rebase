@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericmorand/css-comment-rebase.git"
+    "url": "git+https://github.com/ericmorand/css-source-map-rebase.git"
   },
   "author": "Eric MORAND",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ericmorand/css-comment-rebase/issues"
+    "url": "https://github.com/ericmorand/css-source-map-rebase/issues"
   },
-  "homepage": "https://github.com/ericmorand/css-comment-rebase#readme",
+  "homepage": "https://github.com/ericmorand/css-source-map-rebase#readme",
   "dependencies": {
     "gonzales-pe": "^4.0.3",
     "source-map": "^0.5.6",
