@@ -23,6 +23,28 @@ class Rebaser extends Transform {
         syntax: 'css'
       });
 
+      let shouldBeRebased = function(uri) {
+        if (path.isAbsolute(uri)) {
+          return false;
+        }
+
+        let url = Url.parse(uri);
+
+        // if the url consists of only a hash, it is a reference to an id
+        if (url.hash) {
+          if (!url.path) {
+            return false;
+          }
+        }
+
+        // if the url host is set, it is a remote uri
+        if (url.host) {
+          return false;
+        }
+
+        return true;
+      };
+
       if (self.map) {
         let sourceMapConsumer = new SourceMapConsumer(self.map);
 
@@ -44,9 +66,7 @@ class Rebaser extends Transform {
           });
 
           if (sourceMapNode && sourceMapNode.source) {
-            let url = Url.parse(contentNodeContent);
-
-            if (!url.host && !path.isAbsolute(contentNodeContent)) {
+            if (shouldBeRebased(contentNodeContent)) {
               contentNode.content = path.join(path.dirname(sourceMapNode.source), contentNodeContent);
 
               self.emit('rebase', contentNode.content);
