@@ -9,3 +9,7 @@
 .foo-bar {
     background: url('http://foo/bar');
 }
+
+.svg-id {
+  fill: url(#foo);
+}
