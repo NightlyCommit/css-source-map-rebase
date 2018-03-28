@@ -1,6 +1,6 @@
 {
   "name": "css-source-map-rebase",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Rebase your CSS assets based on a source map.",
   "main": "src/index.js",
   "directories": {
