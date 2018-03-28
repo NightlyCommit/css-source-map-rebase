@@ -22,6 +22,7 @@
   "homepage": "https://github.com/ericmorand/css-source-map-rebase#readme",
   "dependencies": {
     "gonzales-pe": "^4.0.3",
+    "slash": "^2.0.0",
     "source-map": "^0.5.6",
     "unquote": "^1.1.0"
   },

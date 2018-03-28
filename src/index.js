@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const slash = require('slash');
 const unquote = require('unquote');
 const Transform = require('stream').Transform;
 const Url = require('url');
@@ -67,7 +68,7 @@ class Rebaser extends Transform {
 
           if (sourceMapNode && sourceMapNode.source) {
             if (shouldBeRebased(contentNodeContent)) {
-              contentNode.content = path.join(path.dirname(sourceMapNode.source), contentNodeContent);
+              contentNode.content = slash(path.join(path.dirname(sourceMapNode.source), contentNodeContent));
 
               self.emit('rebase', contentNode.content);
             }
