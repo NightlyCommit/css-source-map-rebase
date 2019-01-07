@@ -7,7 +7,6 @@
     "test": "test"
   },
   "scripts": {
-    "pretest": "npm prune && npm update",
     "test": "tap test/*.js --cov --reporter=spec --100"
   },
   "repository": {
@@ -27,9 +26,9 @@
     "unquote": "^1.1.0"
   },
   "devDependencies": {
-    "clean-css": "^4.0.10",
-    "node-sass": "^4.5.2",
+    "clean-css": "^4.2.1",
+    "node-sass": "^4.11.0",
     "tap": "^10.3.0",
-    "through2": "^2.0.3"
+    "through2": "^2.0.5"
   }
 }
