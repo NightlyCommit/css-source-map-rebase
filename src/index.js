@@ -1,50 +1,27 @@
-const fs = require('fs');
 const path = require('path');
-const slash = require('slash');
 const unquote = require('unquote');
-const Transform = require('stream').Transform;
-const Url = require('url');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
-const SourceNode = require('source-map').SourceNode;
+const {Transform} = require('stream');
+const {parse} = require('url');
+const {SourceMapConsumer} = require('source-map');
 
-class Rebaser extends Transform {
+exports.Rebaser = class extends Transform {
   constructor(options) {
     options = options || {};
 
     super(options);
 
     this.map = options.map;
+    this.rebase = options.rebase;
   }
 
   _transform(chunk, encoding, callback) {
     try {
       let self = this;
+      let rebase = this.rebase;
 
       let parseTree = require('gonzales-pe').parse(chunk.toString(), {
         syntax: 'css'
       });
-
-      let shouldBeRebased = function(uri) {
-        if (path.isAbsolute(uri)) {
-          return false;
-        }
-
-        let url = Url.parse(uri);
-
-        // if the url consists of only a hash, it is a reference to an id
-        if (url.hash) {
-          if (!url.path) {
-            return false;
-          }
-        }
-
-        // if the url host is set, it is a remote uri
-        if (url.host) {
-          return false;
-        }
-
-        return true;
-      };
 
       if (self.map) {
         let sourceMapConsumer = new SourceMapConsumer(self.map);
@@ -59,7 +36,7 @@ class Rebaser extends Transform {
             contentNode = node.first('raw');
           }
 
-          let contentNodeContent = unquote(contentNode.content);
+          let url = parse(unquote(contentNode.content));
 
           let sourceMapNode = sourceMapConsumer.originalPositionFor({
             line: nodeStartLine,
@@ -67,11 +44,41 @@ class Rebaser extends Transform {
           });
 
           if (sourceMapNode && sourceMapNode.source) {
-            if (shouldBeRebased(contentNodeContent)) {
-              contentNode.content = slash(path.join(path.dirname(sourceMapNode.source), contentNodeContent));
+            let resolvedUrl;
 
-              self.emit('rebase', contentNode.content);
+            if (path.isAbsolute(url.href) || url.host || (url.hash && !url.path)) {
+              resolvedUrl = url;
+            } else {
+              resolvedUrl = parse(path.join(path.dirname(sourceMapNode.source), url.href));
             }
+
+            let done = (rebasedUrl) => {
+              if (rebasedUrl !== false) {
+                if (!rebasedUrl) { // default rebasing
+                  rebasedUrl = resolvedUrl;
+                }
+
+                contentNode.content = rebasedUrl.href;
+
+                self.emit('rebase', {
+                  raw: url,
+                  resolved: resolvedUrl,
+                  rebased: rebasedUrl
+                });
+              }
+            };
+
+            if (!rebase) {
+              rebase = ({}, done) => {
+                done();
+              };
+            }
+
+            rebase({
+              url: url,
+              source: parse(sourceMapNode.source),
+              resolved: resolvedUrl
+            }, done);
           }
         });
       }
@@ -79,11 +86,8 @@ class Rebaser extends Transform {
       self.push(parseTree.toString());
 
       callback();
-    }
-    catch (err) {
+    } catch (err) {
       callback(err);
     }
   }
-}
-
-module.exports = Rebaser;
+};
