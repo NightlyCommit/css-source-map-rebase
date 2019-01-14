@@ -1,10 +1,12 @@
 @font-face {
-    font-family: Foo;
-    src: url("test/fixtures/partials/assets/bar.eot"), url("test/fixtures/partials/assets/bar.eot#bar") format("embedded-opentype");
-    src: url("test/fixtures/partials/assets/bar.woff") format("woff");
-}
+  font-family: Foo;
+  src: url("test/fixtures/partials/assets/bar.eot"), url("test/fixtures/partials/assets/bar.eot#bar") format("embedded-opentype");
+  src: url("test/fixtures/partials/assets/bar.woff") format("woff"); }
 
 .foo {
-    background: url("test/fixtures/mixins/assets/bar.png");
-    background: url("test/fixtures/assets/foo.png");
-}
+  background: url("test/fixtures/assets/foo.png"); }
+
+.bar {
+  background: url(test/fixtures/mixins/assets/bar.png); }
+
+/*# sourceMappingURL=data:application/json;base64,ewoJInZlcnNpb24iOiAzLAoJImZpbGUiOiAiaW5kZXguY3NzIiwKCSJzb3VyY2VzIjogWwoJCSJ0ZXN0L2ZpeHR1cmVzL2luZGV4LnNjc3MiLAoJCSJ0ZXN0L2ZpeHR1cmVzL3BhcnRpYWxzL19iYXIuc2NzcyIsCgkJInRlc3QvZml4dHVyZXMvbWl4aW5zL19iYXIuc2NzcyIKCV0sCgkibmFtZXMiOiBbXSwKCSJtYXBwaW5ncyI6ICJBQ0FBLFVBQVU7RUFDUixXQUFXLEVBQUUsR0FBRztFQUNoQixHQUFHLEVBQUUsdUJBQXVCLEVBQUUsMkJBQTJCLENBQUMsMkJBQTJCO0VBQ3JGLEdBQUcsRUFBRSx3QkFBd0IsQ0FBQyxjQUFjOztBREE5QyxBQUFBLElBQUksQ0FBQztFQUNELFVBQVUsRUFBRSx1QkFBdUIsR0FDdEM7O0FBRUQsQUFBQSxJQUFJLENBQUM7RUVOSCxVQUFVLEVBQUUscUJBQXFCLEdGUWxDIgp9 */

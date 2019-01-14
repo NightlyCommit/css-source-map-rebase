@@ -40,7 +40,7 @@ By rebasing the assets relatively to the file they were imported from, the resul
 
 ## How it works
 
-css-source-map-rebase uses the mapping provided by source maps to resolve the original file the assets where imported from. That's why it *needs* a source map to perform its magic. Any tool able to generate a source map from a stylesheet source file (may it be SASS, LESS or any other pre-processor language) is appropriate. Here is how one could use node-sass and css-source-map-rebase together to render a stylesheet and rebase its assets.
+css-source-map-rebase uses the mapping provided by source maps to resolve the original file the assets where imported from. That's why it *needs* a source map to perform its magic, either inline in the stylesheet or explicitly passed as an option. Any tool able to generate a source map from a stylesheet source file (may it be SASS, LESS or any other pre-processor language) is appropriate. Here is how one could use node-sass and css-source-map-rebase together to render a stylesheet and rebase its assets.
 
 ``` javascript
 let nodeSass = require('node-sass');
@@ -49,6 +49,7 @@ let {Rebaser} = require('css-source-map-rebase');
 nodeSass.render({
     file: 'index.scss',
     sourceMap: true,
+    sourceMapEmbed: sourceMapEmbed,
     outFile: 'index.css'
 }, function(error, result) {
     if (error) {
@@ -56,11 +57,8 @@ nodeSass.render({
     }
     else {
         let css = result.css.toString();
-        let map = JSON.stringify(result.map);
         
-        let rebaser = new Rebaser({
-            map: map
-        });
+        let rebaser = new Rebaser();
         
         let data = '';
         let stream = new Readable({
@@ -87,34 +85,32 @@ nodeSass.render({
 
 ## API
 
-`let Rebaser = require('css-source-map-rebase')`
+`let {Rebaser} = require('css-source-map-rebase')`
 
-### rebaser = new Rebaser(opts={})
+### new Rebaser(options={})
 
-Return an object transform stream `rebaser` that expects entry filenames.
+Returns a transform stream that expects stylesheets as entry.
 
-Optionally pass in some opts:
+Optionally pass in some options:
 
-* opts.map:
-  
-  The belonging source map in the form of a JSON string. Defaults to `null`. Note that this module basically does nothing without a source map.
+* `options.map`: The belonging source map in the form of a JSON string. If set, will be used in place of the inline source map of the entry.
+    * Type: `string`
+    * Default: `undefined`
 
-* opts.rebase:
-    
-    Handles when the rebaser encounters an asset that may need rebasing.
+* `options.rebase`: Handles when the rebaser encounters an asset that may need rebasing.
   
     * Type: `Function`
     * Default: `undefined`
     * Signature:
-        * `{source, url, resolved}` - an object containing the following properties:
-            * `source (URL)` - the [URL](https://nodejs.org/api/url.html) of the source file where the asset was found.
-            * `url (URL)` - the [URL](https://nodejs.org/api/url.html) of the asset in the source file.
-            * `resolved (URL)` - the resolved [URL](https://nodejs.org/api/url.html) of the asset - i.e. the [URL](https://nodejs.org/api/url.html) of the asset relative to the source file.
-        * `done (Function)` - a callback function to invoke on completion. Accepts either `false`, `null`, `undefined` or an [URL](https://nodejs.org/api/url.html) as parameter. When called with `false`, the asset will not be rebased. When called with either `null` or `undefined`, the asset will be rebased using the [default rebasing logic](#rebasing-logic). When called with an [URL](https://nodejs.org/api/url.html), the asset will be rebased to that [URL](https://nodejs.org/api/url.html).
+        * `{source: URL, url: URL, resolved: URL}` - an object containing the following properties:
+            * `source` - the [URL](https://nodejs.org/api/url.html) of the source file where the asset was found.
+            * `url` - the [URL](https://nodejs.org/api/url.html) of the asset in the source file.
+            * `resolved` - the resolved [URL](https://nodejs.org/api/url.html) of the asset - i.e. the [URL](https://nodejs.org/api/url.html) of the asset relative to the source file.
+        * `done: Function` - a callback function to invoke on completion. Accepts either `false`, `null`, `undefined` or an [URL](https://nodejs.org/api/url.html) as parameter. When called with `false`, the asset will not be rebased. When called with either `null` or `undefined`, the asset will be rebased using the [default rebasing logic](#rebasing-logic). When called with an [URL](https://nodejs.org/api/url.html), the asset will be rebased to that [URL](https://nodejs.org/api/url.html).
 
 ## <a name="rebasing-logic"></a>Rebasing logic
 
-When css-source-map-rebase encounters an asset that may need rebasing, it first checks if it is a remote or a local asset. In the former case, the asset is not rebased at all. In the latter case, the asset is rebased be resolving the asset path relatively to the path of the source it's coming from.
+When css-source-map-rebase encounters an asset that may need rebasing, it first checks if it is a remote or a local asset. In the former case, the asset is not rebased at all. In the latter case, the asset is rebased by resolving the asset path relatively to the path of the source it's coming from.
 
 For example, a `foo/bar.png` asset coming from `lorem/ipsum/index.scss` would be rebased to `lorem/ipsum/foo/bar.png`.
 

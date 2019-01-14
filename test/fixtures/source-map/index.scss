@@ -1,0 +1,8 @@
+
+@font-face {
+  src: url('../assets/bar.eot'), url('../assets/bar.eot#bar') format('embedded-opentype');
+}
+
+.foo {
+  background-image: url(../assets/foo.png), url(../assets/foo.png);
+}
