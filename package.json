@@ -7,7 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "tap test/*.js --cov --reporter=spec --100"
+    "precover": "rimraf coverage",
+    "test": "tape 'test/*.js' | tap-mocha-reporter spec",
+    "cover": "nyc npm t",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -20,15 +23,16 @@
   },
   "homepage": "https://github.com/ericmorand/css-source-map-rebase#readme",
   "dependencies": {
-    "gonzales-pe": "^4.0.3",
+    "convert-source-map": "^1.6.0",
+    "css-tree": "^1.0.0-alpha.29",
     "slash": "^2.0.0",
-    "source-map": "^0.5.6",
-    "unquote": "^1.1.0"
+    "source-map": "^0.5.6"
   },
   "devDependencies": {
     "clean-css": "^4.2.1",
     "node-sass": "^4.11.0",
     "tap": "^10.3.0",
+    "tape": "^4.9.2",
     "through2": "^2.0.5"
   }
 }

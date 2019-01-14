@@ -7,24 +7,49 @@ const cleanCSS = require('./lib/clean-css');
 const nodeSass = require('node-sass');
 const Readable = require('stream').Readable;
 const Url = require('url');
+const {SourceMapGenerator} = require('source-map');
 
-let render = function (entry) {
-  let sassRenderResult = nodeSass.renderSync({
+let render = function (entry, sourceMapEmbed = true) {
+  return nodeSass.renderSync({
     file: entry,
     sourceMap: true,
+    sourceMapEmbed: sourceMapEmbed,
     outFile: 'index.css'
   });
-
-  return sassRenderResult;
 };
 
 tap.test('rebaser', function (test) {
+  test.test('should throw an error when no source map is found', function (test) {
+    let sassRenderResult = render(path.resolve('test/fixtures/index.scss'), false);
+
+    let rebaser = new Rebaser();
+
+    let stream = new Readable({
+      encoding: 'utf8'
+    });
+
+    stream
+      .pipe(rebaser)
+      .on('finish', function () {
+        test.fail();
+
+        test.end();
+      })
+      .on('error', function (err) {
+        test.same(err.message, 'A map is required, either inline or explicitly passed as an option.');
+
+        test.end();
+      })
+    ;
+
+    stream.push(sassRenderResult.css);
+    stream.push(null);
+  });
+
   test.test('should handle well-formed map', function (test) {
     let sassRenderResult = render(path.resolve('test/fixtures/index.scss'));
 
-    let rebaser = new Rebaser({
-      map: sassRenderResult.map.toString()
-    });
+    let rebaser = new Rebaser();
 
     let data = null;
     let stream = new Readable();
@@ -38,7 +63,7 @@ tap.test('rebaser', function (test) {
       }))
       .on('finish', function () {
         fs.readFile(path.resolve('test/fixtures/wanted.css'), function (err, readData) {
-          test.equal(cleanCSS(data), cleanCSS(readData.toString()));
+          test.equal(data.toString(), readData.toString());
 
           test.end();
         });
@@ -51,27 +76,6 @@ tap.test('rebaser', function (test) {
 
     stream.push(sassRenderResult.css);
     stream.push(null);
-  });
-
-  test.test('should emit "error" event on badly formed css', function (test) {
-    let rebaser = new Rebaser();
-
-    let file = path.resolve('test/fixtures/error.css');
-    let error = null;
-
-    fs.createReadStream(file)
-      .pipe(rebaser)
-      .on('finish', function () {
-        test.fail();
-
-        test.end();
-      })
-      .on('error', function (err) {
-          test.ok(err);
-
-          test.end();
-        }
-      )
   });
 
   test.test('should emit "error" event on badly formed map', function (test) {
@@ -110,9 +114,7 @@ tap.test('rebaser', function (test) {
   test.test('should emit "rebase" event', function (test) {
     let sassRenderResult = render(path.resolve('test/fixtures/index.scss'));
 
-    let rebaser = new Rebaser({
-      map: sassRenderResult.map.toString()
-    });
+    let rebaser = new Rebaser();
 
     let rawAssets = [];
     let resolvedAssets = [];
@@ -167,9 +169,7 @@ tap.test('rebaser', function (test) {
   test.test('should handle remote and absolute paths', function (test) {
     let sassRenderResult = render(path.resolve('test/fixtures/remote-and-absolute/index.scss'));
 
-    let rebaser = new Rebaser({
-      map: sassRenderResult.map.toString()
-    });
+    let rebaser = new Rebaser();
 
     let data = null;
 
@@ -199,44 +199,11 @@ tap.test('rebaser', function (test) {
     stream.push(null);
   });
 
-  test.test('should support no map option', function (test) {
-    let sassRenderResult = render(path.resolve('test/fixtures/no-map/index.scss'));
-
-    let rebaser = new Rebaser();
-
-    let data = null;
-    let stream = new Readable();
-
-    stream
-      .pipe(rebaser)
-      .pipe(through(function (chunk, enc, cb) {
-        data = chunk;
-
-        cb();
-      }))
-      .on('finish', function () {
-        fs.readFile(path.resolve('test/fixtures/no-map/wanted.css'), function (err, readData) {
-          test.equal(cleanCSS(data), cleanCSS(readData.toString()));
-
-          test.end();
-        });
-      })
-      .on('error', function (err) {
-        test.fail(err);
-
-        test.end();
-      });
-
-    stream.push(sassRenderResult.css);
-    stream.push(null);
-  });
-
   test.test('should handle map and css not belonging to each other', function (test) {
-    let sassRenderResultCss = render(path.resolve('test/fixtures/map-and-css-not-belonging-to-each-other/index-css.scss'));
-    let sassRenderResultMap = render(path.resolve('test/fixtures/map-and-css-not-belonging-to-each-other/index-map.scss'));
+    let sassRenderResultCss = render(path.resolve('test/fixtures/map-and-css-not-belonging-to-each-other/index.scss'));
 
     let rebaser = new Rebaser({
-      map: sassRenderResultMap.map.toString()
+      map: new SourceMapGenerator().toString()
     });
 
     let data = null;
@@ -269,13 +236,12 @@ tap.test('rebaser', function (test) {
   test.test('should support rebase callback', function (test) {
     let sassRenderResult = render(path.resolve('test/fixtures/index.scss'));
 
-    test.test('{source, url, resolved}', (test) => {
+    test.test('{source, url, resolved}', function (test) {
       let actualSource = null;
       let actualUrl = null;
       let actualResolved = null;
 
       let rebaser = new Rebaser({
-        map: sassRenderResult.map.toString(),
         rebase: ({source, url, resolved}, done) => {
           actualSource = source;
           actualUrl = url;
@@ -292,9 +258,9 @@ tap.test('rebaser', function (test) {
       stream
         .pipe(rebaser)
         .on('finish', function () {
-          test.same(actualSource.href, 'test/fixtures/index.scss', 'source contains the URL of the source file');
-          test.same(actualUrl.href, './assets/foo.png', 'url contains the raw URL of the asset');
-          test.same(actualResolved.href, 'test/fixtures/assets/foo.png', 'resolved contains the resolved URL of the asset');
+          test.same(actualSource.href, 'test/fixtures/mixins/_bar.scss', 'source contains the URL of the source file');
+          test.same(actualUrl.href, './assets/bar.png', 'url contains the raw URL of the asset');
+          test.same(actualResolved.href, 'test/fixtures/mixins/assets/bar.png', 'resolved contains the resolved URL of the asset');
 
           test.end();
         })
@@ -304,12 +270,11 @@ tap.test('rebaser', function (test) {
       stream.push(null);
     });
 
-    test.test('done', (test) => {
+    test.test('done', function (test) {
       test.test('supports being called with false', (test) => {
         let rebasingDidHappen = false;
 
         let rebaser = new Rebaser({
-          map: sassRenderResult.map.toString(),
           rebase: ({}, done) => {
             done(false);
           }
@@ -340,7 +305,6 @@ tap.test('rebaser', function (test) {
         let rebasedUrl = null;
 
         let rebaser = new Rebaser({
-          map: sassRenderResult.map.toString(),
           rebase: ({}, done) => {
             done();
           }
@@ -357,7 +321,7 @@ tap.test('rebaser', function (test) {
         stream
           .pipe(rebaser)
           .on('finish', function () {
-            test.same(rebasedUrl.href, 'test/fixtures/assets/foo.png', 'rebasing happens with default logic');
+            test.same(rebasedUrl.href, 'test/fixtures/mixins/assets/bar.png', 'rebasing happens with default logic');
 
             test.end();
           })
@@ -371,7 +335,6 @@ tap.test('rebaser', function (test) {
         let rebasedUrl = null;
 
         let rebaser = new Rebaser({
-          map: sassRenderResult.map.toString(),
           rebase: ({}, done) => {
             done(null);
           }
@@ -388,7 +351,7 @@ tap.test('rebaser', function (test) {
         stream
           .pipe(rebaser)
           .on('finish', function () {
-            test.same(rebasedUrl.href, 'test/fixtures/assets/foo.png', 'rebasing happens with default logic');
+            test.same(rebasedUrl.href, 'test/fixtures/mixins/assets/bar.png', 'rebasing happens with default logic');
 
             test.end();
           })
@@ -402,7 +365,6 @@ tap.test('rebaser', function (test) {
         let rebasedUrl = null;
 
         let rebaser = new Rebaser({
-          map: sassRenderResult.map.toString(),
           rebase: ({}, done) => {
             done(Url.parse('foo/bar'));
           }
