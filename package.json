@@ -2,7 +2,8 @@
   "name": "css-source-map-rebase",
   "version": "4.0.0",
   "description": "Rebase your CSS assets based on a source map.",
-  "main": "dist/Rebaser.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "prebuild": "rimraf dist",
     "precover": "rimraf coverage",
