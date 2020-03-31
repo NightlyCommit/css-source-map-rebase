@@ -8,7 +8,7 @@
     "precover": "rimraf coverage",
     "test": "ts-node node_modules/tape/bin/tape test/**/test.ts | tap-spec",
     "build": "tsc --project . --module commonjs --outDir dist --declaration true",
-    "build:doc": "typedoc src/lib --mode library --out docs --theme minimal --excludePrivate --excludeNotExported",
+    "build:doc": "typedoc src/lib --mode file --out docs --excludePrivate --excludeNotExported",
     "cover": "nyc npm t",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
@@ -38,7 +38,7 @@
     "tap-spec": "^5.0.0",
     "tape": "^4.13.2",
     "ts-node": "^8.8.1",
-    "typedoc": "^0.17.0-3",
+    "typedoc": "^0.17.3",
     "typescript": "^3.8.3"
   }
 }
