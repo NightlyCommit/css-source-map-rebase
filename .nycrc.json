@@ -4,7 +4,7 @@
     "branches": 100,
     "functions": 100,
     "extension": [
-      ".js"
+      ".ts"
     ],
     "include": "src",
     "reporter": [
