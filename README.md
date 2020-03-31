@@ -112,5 +112,5 @@ Apache-2.0 © [Eric MORAND]()
 [npm-url]: https://npmjs.org/package/css-source-map-rebase
 [travis-image]: https://travis-ci.org/nightlycommit/css-source-map-rebase.svg?branch=master
 [travis-url]: https://travis-ci.org/nightlycommit/css-source-map-rebase
-[coveralls-image]: https://coveralls.io/repos/github/nightlycommit/css-source-map-rebase/badge.svg
-[coveralls-url]: https://coveralls.io/github/nightlycommit/css-source-map-rebase
+[coveralls-image]: https://coveralls.io/repos/github/NightlyCommit/css-source-map-rebase/badge.svg
+[coveralls-url]: https://coveralls.io/github/NightlyCommit/css-source-map-rebase

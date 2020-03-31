@@ -9,31 +9,28 @@ export type Result = {
   map: Buffer
 };
 
-const isRebasable: (url: Url) => boolean = (url) => {
-  return !isAbsolute(url.href) && (url.host === null) && ((url.hash === null) || (url.path !== null));
-};
-
-type NodeToRebase = {
-  sourceMapNode: SourceNode,
-  originalPath: string,
-  rebasedPath: string
-};
-
-export type RebaseHandlerCallback = (rebasedPath?: false | null | string) => void;
+export type RebaseHandlerCallback =
+/**
+ * @param rebasedPath The rebased path of the asset. When `false`, the asset will not be rebased. When either `null` or `undefined`, the asset will be rebased using the default rebasing logic. When a `string`, the asset will be rebased to that string.
+ */
+  (rebasedPath?: false | null | string) => void;
 
 export type RebaseHandler =
 /**
  * @param source The source file where the asset was encountered.
  * @param resolvedPath The resolved path of the asset - i.e. the path of the asset relative to the source file.
- * @param done A callback function to invoke on completion. Accepts either `false`, `null`,
- * `undefined` or a `string` as parameter. When called with `false`, the asset will not be rebased. When called with either
- * `null` or `undefined`, the asset will be rebased using the default rebasing logic. When called with a `string`, the asset
- * will be rebased to that string.
+ * @param done The callback function to invoke on completion.
  */
   (source: string, resolvedPath: string, done: RebaseHandlerCallback) => void;
 
 export type Options = {
+  /**
+   * The source map that should be used to resolve the assets. Takes precedence over the embedded source map of the stylesheet.
+   */
   map?: Buffer,
+  /**
+   * The handler invoked to resolve the rebased path of the asset. Takes precedence over the default rebasing logic.
+   */
   rebase?: RebaseHandler
 };
 
@@ -59,7 +56,20 @@ export class Rebaser extends EventEmitter {
     this._options = options;
   }
 
+  /**
+   * @param css The stylesheet whose assets need to be rebased.
+   */
   rebase(css: Buffer): Promise<Result> {
+    const isRebasable: (url: Url) => boolean = (url) => {
+      return !isAbsolute(url.href) && (url.host === null) && ((url.hash === null) || (url.path !== null));
+    };
+
+    type NodeToRebase = {
+      sourceMapNode: SourceNode,
+      originalPath: string,
+      rebasedPath: string
+    };
+
     return new Promise((resolve, reject) => {
       try {
         let originalCss = css.toString();
