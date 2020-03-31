@@ -2,37 +2,43 @@
   "name": "css-source-map-rebase",
   "version": "3.0.0",
   "description": "Rebase your CSS assets based on a source map.",
-  "main": "src/index.js",
-  "directories": {
-    "test": "test"
-  },
+  "main": "dist/Rebaser.js",
   "scripts": {
+    "prebuild": "rimraf dist",
     "precover": "rimraf coverage",
-    "test": "tape 'test/*.js' | tap-mocha-reporter spec",
+    "test": "ts-node node_modules/tape/bin/tape test/**/test.ts | tap-spec",
+    "build": "tsc --project . --module commonjs --outDir dist --declaration true",
+    "build:doc": "typedoc src/lib --mode library --out docs --theme minimal --excludePrivate --excludeNotExported",
     "cover": "nyc npm t",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericmorand/css-source-map-rebase.git"
+    "url": "git+https://github.com/NightlyCommit/css-source-map-rebase.git"
   },
   "author": "Eric MORAND",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ericmorand/css-source-map-rebase/issues"
+    "url": "https://github.com/NightlyCommit/css-source-map-rebase/issues"
   },
-  "homepage": "https://github.com/ericmorand/css-source-map-rebase#readme",
+  "homepage": "https://github.com/NightlyCommit/css-source-map-rebase#readme",
   "dependencies": {
-    "convert-source-map": "^1.6.0",
-    "css-tree": "^1.0.0-alpha.29",
-    "slash": "^2.0.0",
-    "source-map": "^0.5.6"
+    "@types/css-tree": "^1.0.3",
+    "convert-source-map": "^1.7.0"
   },
   "devDependencies": {
-    "clean-css": "^4.2.1",
-    "node-sass": "^4.11.0",
-    "tap": "^10.3.0",
-    "tape": "^4.9.2",
-    "through2": "^2.0.5"
+    "@types/convert-source-map": "^1.5.1",
+    "@types/node": "^13.9.5",
+    "@types/node-sass": "^4.11.0",
+    "@types/tape": "^4.2.34",
+    "coveralls": "^3.0.11",
+    "node-sass": "^4.13.1",
+    "nyc": "^15.0.0",
+    "source-map": "^0.7.3",
+    "tap-spec": "^5.0.0",
+    "tape": "^4.13.2",
+    "ts-node": "^8.8.1",
+    "typedoc": "^0.17.0-3",
+    "typescript": "^3.8.3"
   }
 }
