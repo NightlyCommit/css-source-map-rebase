@@ -42,7 +42,7 @@ export interface Rebaser {
    *
    * @param event
    * @param rebasedPath The rebased path of the asset.
-   * @param rebasedPath The resolved path of the asset.
+   * @param resolvedPath The resolved path of the asset.
    * @event
    */
   emit(event: "rebase", rebasedPath: string, resolvedPath: string): boolean;
