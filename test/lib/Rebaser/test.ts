@@ -97,18 +97,31 @@ tape("Rebaser", (test) => {
     let sassRenderResult = render(resolvePath("test/fixtures/index.scss"));
 
     let rebaser = new Rebaser({
-      map: sassRenderResult.map
+      map: sassRenderResult.map,
+      rebase: (source, resolvedPath, done) => {
+        done(posix.join('foo', resolvedPath));
+      }
     });
 
     let rebasedAssets: Array<string> = [];
+    let resolvedAssets: Array<string> = [];
 
-    rebaser.on("rebase", (rebasedPath) => {
+    rebaser.on("rebase", (rebasedPath, resolvedPath) => {
       rebasedAssets.push(rebasedPath);
+      resolvedAssets.push(resolvedPath);
     });
 
     rebaser.rebase(sassRenderResult.css)
-      .then(result => {
+      .then(() => {
         test.same(rebasedAssets.sort(), [
+          "foo/test/fixtures/assets/foo.png",
+          "foo/test/fixtures/mixins/assets/bar.png",
+          "foo/test/fixtures/partials/assets/bar.eot",
+          "foo/test/fixtures/partials/assets/bar.eot",
+          "foo/test/fixtures/partials/assets/bar.woff"
+        ].sort());
+
+        test.same(resolvedAssets.sort(), [
           "test/fixtures/assets/foo.png",
           "test/fixtures/mixins/assets/bar.png",
           "test/fixtures/partials/assets/bar.eot",
