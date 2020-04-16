@@ -35,16 +35,17 @@ export type Options = {
 };
 
 export interface Rebaser {
-  on(event: "rebase", listener: (rebasedPath: string) => void): this;
+  on(event: "rebase", listener: (rebasedPath: string, resolvedPath: string) => void): this;
 
   /**
    * Emitted whenever an asset is rebased.
    *
    * @param event
    * @param rebasedPath The rebased path of the asset.
+   * @param rebasedPath The resolved path of the asset.
    * @event
    */
-  emit(event: "rebase", rebasedPath: string): boolean;
+  emit(event: "rebase", rebasedPath: string, resolvedPath: string): boolean;
 }
 
 export class Rebaser extends EventEmitter {
@@ -67,7 +68,8 @@ export class Rebaser extends EventEmitter {
     type NodeToRebase = {
       sourceMapNode: SourceNode,
       originalPath: string,
-      rebasedPath: string
+      rebasedPath: string,
+      resolvedPath: string
     };
 
     return new Promise((resolve, reject) => {
@@ -118,7 +120,8 @@ export class Rebaser extends EventEmitter {
                           nodesToRebase.push({
                             sourceMapNode: node,
                             originalPath: urlStr,
-                            rebasedPath: rebasedPath
+                            rebasedPath: rebasedPath,
+                            resolvedPath: resolvedPath
                           })
                           ;
                         }
@@ -145,7 +148,7 @@ export class Rebaser extends EventEmitter {
           for (let nodeToRebase of nodesToRebase) {
             nodeToRebase.sourceMapNode.replaceRight(nodeToRebase.originalPath, nodeToRebase.rebasedPath);
 
-            this.emit("rebase", nodeToRebase.rebasedPath);
+            this.emit("rebase", nodeToRebase.rebasedPath, nodeToRebase.resolvedPath);
           }
 
           let codeWithSourceMap = sourceMapNode.toStringWithSourceMap();
