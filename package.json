@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prebuild": "rimraf dist",
+    "clean": "rimraf dist",
+    "prepack": "npm run clean && npm run build",
+    "prebuild": "npm run clean",
     "precover": "rimraf coverage",
     "test": "ts-node node_modules/tape/bin/tape test/**/test.ts | tap-spec",
     "build": "tsc --project . --module commonjs --outDir dist --declaration true",
