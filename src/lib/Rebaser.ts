@@ -1,5 +1,5 @@
-import {isAbsolute, posix, dirname} from "path";
-import {parse, Url} from "url";
+import {isAbsolute, posix, dirname, relative} from "path";
+import {parse, Url, fileURLToPath} from "url";
 import {SourceMapConsumer, SourceNode} from "source-map";
 import {fromSource} from "convert-source-map";
 import {EventEmitter} from "events";
@@ -65,7 +65,7 @@ export class Rebaser extends EventEmitter {
       return !isAbsolute(url.href) && (url.host === null) && ((url.hash === null) || (url.path !== null));
     };
 
-    type NodeToRebase = {
+    type UrlToRebase = {
       sourceMapNode: SourceNode,
       originalPath: string,
       rebasedPath: string,
@@ -92,8 +92,8 @@ export class Rebaser extends EventEmitter {
           throw new Error("A map is required, either inline or explicitly passed as an option.");
         }
 
-        let nodesToRebase: Array<NodeToRebase> = [];
-        let urlRegExp: RegExp = /^url\('(.*?)'\)|^url\("(.*?)"\)|^url\((.*?)\)/;
+        let urlsToRebase: Array<UrlToRebase> = [];
+        let urlRegExp: RegExp = /url\('(.*?)'\)|url\("(.*?)"\)|url\((.*?)\)/mg;
 
         new SourceMapConsumer(map.toString()).then((consumer) => {
           let sourceMapNode = SourceNode.fromStringWithSourceMap(originalCss, consumer);
@@ -102,14 +102,26 @@ export class Rebaser extends EventEmitter {
             if (node.children) {
               for (let child of node.children) {
                 if (typeof child === 'string') {
-                  let match: RegExpExecArray = urlRegExp.exec(child);
+                  let match: RegExpExecArray;
 
-                  if (match !== null) {
+                  while ((match = urlRegExp.exec(child)) != null) {
                     let urlStr: string = match[1] || match[2] || match[3];
                     let url: Url = parse(urlStr);
 
                     if (isRebasable(url)) {
-                      let resolvedPath = posix.join(dirname(node.source), url.pathname);
+                      let nodeSourceUrl = parse(node.source);
+
+                      let nodeSource: string;
+
+                      if (nodeSourceUrl.protocol === 'file:') {
+                        nodeSource = fileURLToPath(node.source);
+                      } else {
+                        nodeSource = node.source;
+                      }
+
+                      nodeSource = relative('.', nodeSource);
+
+                      let resolvedPath = posix.join(dirname(nodeSource), url.pathname);
 
                       const done: RebaseHandlerCallback = (rebasedPath) => {
                         if (rebasedPath !== false) {
@@ -117,7 +129,7 @@ export class Rebaser extends EventEmitter {
                             rebasedPath = resolvedPath;
                           }
 
-                          nodesToRebase.push({
+                          urlsToRebase.push({
                             sourceMapNode: node,
                             originalPath: urlStr,
                             rebasedPath: rebasedPath,
@@ -133,7 +145,7 @@ export class Rebaser extends EventEmitter {
                         };
                       }
 
-                      rebase(node.source, resolvedPath, done);
+                      rebase(nodeSource, resolvedPath, done);
                     }
                   }
                 }
@@ -145,10 +157,10 @@ export class Rebaser extends EventEmitter {
 
           handleNode(sourceMapNode);
 
-          for (let nodeToRebase of nodesToRebase) {
-            nodeToRebase.sourceMapNode.replaceRight(nodeToRebase.originalPath, nodeToRebase.rebasedPath);
+          for (let urlToRebase of urlsToRebase) {
+            urlToRebase.sourceMapNode.replaceRight(urlToRebase.originalPath, urlToRebase.rebasedPath);
 
-            this.emit("rebase", nodeToRebase.rebasedPath, nodeToRebase.resolvedPath);
+            this.emit("rebase", urlToRebase.rebasedPath, urlToRebase.resolvedPath);
           }
 
           let codeWithSourceMap = sourceMapNode.toStringWithSourceMap();
